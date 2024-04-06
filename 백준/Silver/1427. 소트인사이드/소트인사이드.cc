@@ -13,12 +13,12 @@ int main() {
 	string Num;
 	int Alpha[10] = { 0, };//모두 0으로 초기화
 	cin >> Num;
-	//방법 1: srot()알고리즘 사용
+	/*//방법 1: srot()알고리즘 사용
 	//시작주소, 끝주소, 조건
 	sort(Num.begin(), Num.end(), NumCompair);
-	cout << Num + "\n";
+	cout << Num + "\n";*/
 	//방법 2: 배열 사용하기
-	/*for (int i = 0; i < Num.size(); i++) {
+	for (int i = 0; i < Num.size(); i++) {
 		//각 숫자에 해당하는 인덱스 값 증가
 		Alpha[Num[i] - '0']++; 
 	}
@@ -27,6 +27,6 @@ int main() {
 		for (int j = 0; j < Alpha[i]; j++) {
 			cout << i ;
 		}
-	}*/
+	}
 	return 0;
 }
