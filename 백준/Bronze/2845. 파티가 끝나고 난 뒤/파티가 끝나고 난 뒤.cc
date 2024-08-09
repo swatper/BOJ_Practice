@@ -5,16 +5,12 @@ int main() {
 	cin.tie(NULL);
 	cout.tie(NULL);
 	ios_base::sync_with_stdio(false);
-	int* News = new int[5];
-	int People, Large, Total;
+	int People, Large, Total, News;
 	cin >> People >> Large;
 	Total = People * Large;
 	for (int i = 0; i < 5; i++){
-		cin >> News[i];
-	}
-
-	for (int i = 0; i < 5; i++){
-		cout << News[i] - Total <<" ";
+		cin >> News;
+		cout << News - Total << " ";
 	}
 	cout << "\n";
 	return 0;
