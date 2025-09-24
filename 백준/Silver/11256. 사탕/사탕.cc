@@ -33,6 +33,7 @@ int main() {
             }
         }
         cout << reqBoxes + 1 << "\n";
+        delete[] boxList;
     }
     return 0;
 }
