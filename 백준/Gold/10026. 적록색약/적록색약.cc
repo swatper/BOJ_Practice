@@ -1,3 +1,4 @@
+/*백준 1012번(유기농 배추)와 비슷한 문제*/
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -75,4 +76,5 @@ void BFS(int &count, int size, string map[], vector<vector<bool>>Visited, bool T
 			}
 		}
 	}
+
 }
