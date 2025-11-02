@@ -8,7 +8,9 @@ int nearX[4] = { 0, 0, -1, 1 };
 int nearY[4] = { -1, 1, 0, 0 };
 
 //너비 우선 탐색
-void BFS(queue<pair<int, int>> &target, vector<vector<int>>&graph, int width, int height);int main() {
+void BFS(queue<pair<int, int>> &target, vector<vector<int>>&graph, int width, int height);
+
+int main() {
 	cin.tie(NULL);
 	cout.tie(NULL);
 	ios_base::sync_with_stdio(false);
@@ -58,4 +60,5 @@ void BFS(queue<pair<int, int>>&target, vector<vector<int>>&graph, int width, int
 			}
 		}
 	}
+
 }
