@@ -111,8 +111,7 @@ def create_notion_page(prob_id, info, code):
                 "object": "block",
                 "type": "callout",
                 "callout": {
-                    "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}],
-                    "icon": {"emoji": "?"}
+                    "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}]
                 }
             },
             # 2. 텍스트 (Paragraph): 백준 문제 링크 추가
