@@ -150,5 +150,6 @@ def main():
                 else:
                     print(f"⚠️ 문제 번호 추출 실패: {parent_folder} (파일: {file})")
 
+# GitHub Actions에서 직접 실행할 때는 main() 함수를 호출
 if __name__ == "__main__":
     main()
