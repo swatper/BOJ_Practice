@@ -2,6 +2,7 @@
 import os
 import requests
 import json
+import time
 
 # GitHub Actions 환경변수에서 설정값 가져오기
 NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
