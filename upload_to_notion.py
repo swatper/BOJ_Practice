@@ -72,7 +72,7 @@ def parse_readme_data(readme_path):
     return None
 
 # 티어 문자열을 숫자로 변환하는 함수
-def def get_level_num(level_name):
+def get_level_num(level_name):
     """Bronze V 같은 문자열을 Solved.ac 레벨 숫자로 변환"""
     tiers = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Ruby"]
     ranks = {"V": 1, "IV": 2, "III": 3, "II": 4, "I": 5}
