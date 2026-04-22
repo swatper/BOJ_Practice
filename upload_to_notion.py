@@ -109,9 +109,10 @@ def create_notion_page(prob_id, info, code):
             # 1. 강조 박스 (Callout): 문제 태그 정보 표시
             {
                 "object": "block",
-                "type": "quote",
-                "quote": {
+                "type": "callout",
+                "callout": {
                     "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}],
+                    "icon": {"type": "emoji", "emoji": {"name": "💡"}}
                 }
             },
             # 2. 텍스트 (Paragraph): 백준 문제 링크 추가
@@ -122,7 +123,7 @@ def create_notion_page(prob_id, info, code):
                     "rich_text": [
                         {
                             "text": {
-                                "content": "? 백준 문제 바로가기",
+                                "content": "문제 링크",
                                 "link": {"url": f"https://www.acmicpc.net/problem/{prob_id}"}
                             }
                         }
@@ -141,7 +142,15 @@ def create_notion_page(prob_id, info, code):
                 "type": "code",
                 "code": {
                     "language": "c++",
-                    "rich_text": [{"text": {"content": code}}]
+                    "rich_text": 
+                    [
+                        # 코드를 2000자 단위로 잘라서 여러 개의 조각으로 보냅니다.
+                        {
+                            "type": "text",
+                            "text": {"content": code[i : i + 2000]}
+                        }
+                        for i in range(0, len(code), 2000)
+                ]
                 }
             }
         ]
