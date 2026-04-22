@@ -136,6 +136,8 @@ def main():
                         
                         # 노션에 페이지 생성 함수 호출
                         status = create_notion_page(prob_id, info, code_content)
+
+                        time.sleep(1)
                         if status == 200 or status == 201:
                             print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
                         else:
@@ -143,7 +145,7 @@ def main():
                         
                     else:
                         print(f"⚠️ Solved.ac 정보를 가져오지 못했습니다: {prob_id}")
-                    
+                        time.sleep(1)
                 else:
                     print(f"⚠️ 문제 번호 추출 실패: {parent_folder} (파일: {file})")
 
