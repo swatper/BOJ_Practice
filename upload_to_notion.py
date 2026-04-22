@@ -100,26 +100,32 @@ def create_notion_page(prob_id, info, code):
         print(res.text)
 
 def main():
-    #깃허브 레포지토리 내의 모든 폴더/파일 탐색
+    # 현재 디렉토리부터 하위 폴더를 모두 탐색
     for root, dirs, files in os.walk("."):
-        #불필요한 설정 폴더 제외
+        # 불필요한 설정 폴더(.git, .github)는 건너뜀
         if ".git" in root or ".github" in root:
             continue
             
         for file in files:
-            #C++ 소스 파일만 처리
-            if file.endswith(".cpp"):
-                #파일 경로 또는 이름에서 문제 번호 추출 (예: '5639.cpp' 또는 '5639 - 이진 검색 트리' 폴더 내 파일)
-                #숫자로만 구성된 부분만 추출하여 문제 번호로 사용
-                prob_id = "".join(filter(str.isdigit, file))
+            # 1. 확장자 체크: .cpp 뿐만 아니라 .cc 파일도 포함
+            if file.endswith(".cpp") or file.endswith(".cc"):
                 
-                # 만약 파일명에 번호가 없다면 부모 폴더 이름에서 시도
-                if not prob_id:
-                    parent_folder = root.split(os.sep)[-1]
-                    prob_id = "".join(filter(str.isdigit, parent_folder))
+                # 2. 문제 번호 추출: 파일명이 아닌 '부모 폴더명'에서 가져옴
+                # root.split(os.sep)[-1]은 현재 파일이 들어있는 폴더 이름(예: "1263. 시간 관리")입니다.
+                parent_folder = root.split(os.sep)[-1]
                 
+                # 폴더명의 시작 부분에서 숫자만 추출 (예: "1263. 시간 관리" -> "1263")
+                prob_id = ""
+                for char in parent_folder:
+                    if char.isdigit():
+                        prob_id += char
+                    else:
+                        # 숫자가 아닌 문자(. 이나 공백 등)를 만나면 추출 중단
+                        if prob_id: break
+                
+                # 3. 문제 번호를 찾았다면 노션 업로드 진행
                 if prob_id:
-                    print(f"문제 {prob_id} 분석 중...")
+                    print(f"🚀 분석 중인 문제: {prob_id}")
                     info = get_solved_ac_info(prob_id)
                     
                     if info:
@@ -128,8 +134,8 @@ def main():
                         with open(file_path, "r", encoding="utf-8") as f:
                             code_content = f.read()
                         
-                        # 노션에 페이지 생성
-                        create_notion_page(prob_id, info, code_content)
-
+                        # 노션에 페이지 생성 함수 호출
+                        status = create_notion_page(prob_id, info, code_content)
+                        print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
 if __name__ == "__main__":
     main()
