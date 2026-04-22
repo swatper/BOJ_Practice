@@ -17,6 +17,12 @@ headers = {
 def get_solved_ac_info(prob_id):
     """Solved.ac API를 통해 문제 정보(제목, 티어, 태그) 획득"""
     url = f"https://solved.ac/api/v3/problem/show?problemId={prob_id}"
+
+    #브라우저인 척 변장하기
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
     try:
         res = requests.get(url)
         if res.status_code == 200:
@@ -137,16 +143,15 @@ def main():
                         
                         # 노션에 페이지 생성 함수 호출
                         status = create_notion_page(prob_id, info, code_content)
-
-                        time.sleep(1)
                         if status == 200 or status == 201:
                             print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
                         else:
                             print(f"❌ 노션 전송 실패: {prob_id} (에러 코드: {status})")
-                        
+
+                        time.sleep(0.5)
                     else:
                         print(f"⚠️ Solved.ac 정보를 가져오지 못했습니다: {prob_id}")
-                        time.sleep(1)
+                        time.sleep(0.5)
                 else:
                     print(f"⚠️ 문제 번호 추출 실패: {parent_folder} (파일: {file})")
 
