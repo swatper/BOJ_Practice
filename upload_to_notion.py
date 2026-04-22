@@ -106,7 +106,6 @@ def main():
         if ".git" in root or ".github" in root:
             continue
             
-        print(f"🔍 탐색 중: {root} (파일 수: {len(files)})")
         for file in files:
             # 1. 확장자 체크: .cpp 뿐만 아니라 .cc 파일도 포함
             if file.endswith(".cpp") or file.endswith(".cc"):
@@ -137,9 +136,14 @@ def main():
                         
                         # 노션에 페이지 생성 함수 호출
                         status = create_notion_page(prob_id, info, code_content)
-                        print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
+                        if status == 200 or status == 201:
+                            print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
+                        else:
+                            print(f"❌ 노션 전송 실패: {prob_id} (에러 코드: {status})")
+                        
                     else:
-                        print(f"❌ 노션 전송 실패: {prob_id} (에러 코드: {status})")
+                        print(f"⚠️ Solved.ac 정보를 가져오지 못했습니다: {prob_id}")
+                    
                 else:
                     print(f"⚠️ 문제 번호 추출 실패: {parent_folder} (파일: {file})")
 
