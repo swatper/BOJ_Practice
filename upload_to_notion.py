@@ -140,7 +140,7 @@ def main():
                         print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
                     else:
                         print(f"❌ 노션 전송 실패: {prob_id} (에러 코드: {status})")
-                else
+                else:
                     print(f"⚠️ 문제 번호 추출 실패: {parent_folder} (파일: {file})")
 
 if __name__ == "__main__":
