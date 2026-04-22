@@ -109,9 +109,9 @@ def create_notion_page(prob_id, info, code):
             # 1. 강조 박스 (Callout): 문제 태그 정보 표시
             {
                 "object": "block",
-                "type": "callout",
-                "callout": {
-                    "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}]
+                "type": "quote",
+                "quote": {
+                    "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}],
                 }
             },
             # 2. 텍스트 (Paragraph): 백준 문제 링크 추가
@@ -140,7 +140,7 @@ def create_notion_page(prob_id, info, code):
                 "object": "block",
                 "type": "code",
                 "code": {
-                    "language": "cpp",
+                    "language": "c++",
                     "rich_text": [{"text": {"content": code}}]
                 }
             }
