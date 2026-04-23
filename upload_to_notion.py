@@ -5,21 +5,22 @@ import json
 import time
 import re
 
-# GitHub Actions 환경변수에서 설정값 가져오기
-NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
+#GitHub Actions 환경변수에서 설정값 가져오기
+NOTION_API = os.environ.get('NOTION_API')
 NOTION_PAGE_ID = os.environ.get('NOTION_PAGE_ID')
+NOTION_DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
 
-RequestTime = 10  # API 요청 간격 (초 단위)
+RequestTime = 0.5 # API 요청 간격 (초 단위)
 
 headers = {
-    "Authorization": f"Bearer {NOTION_TOKEN}",
+    "Authorization": f"Bearer {NOTION_API}",
     "Content-Type": "application/json",
     "Notion-Version": "2022-06-28"
 }
 
-# 403 문제로 방식 변경
+""" 403 문제로 방식 변경
+# Solved.ac API로 문제 정보 획득 
 def get_solved_ac_info(prob_id):
-    """Solved.ac API를 통해 문제 정보(제목, 티어, 태그) 획득"""
     url = f"https://solved.ac/api/v3/problem/show?problemId={prob_id}"
 
     #브라우저인 척 변장하기
@@ -44,6 +45,7 @@ def get_solved_ac_info(prob_id):
     except Exception as e:
         print(f"Solved.ac API 호출 중 오류 발생: {e}")
     return None
+"""
 
 # Readme.md 파일에서 티어, 제목, 번호를 추출하는 함수
 def parse_readme_data(readme_path):
@@ -85,96 +87,104 @@ def get_level_num(level_name):
         return 0 # 알 수 없는 경우 0 (Unrated)
 
 
-def create_notion_page(prob_id, info, code):
-    """노션 API를 호출하여 페이지 구성 및 생성"""
-    url = "https://api.notion.com/v1/pages"
-    
-    #[페이지 아이콘]: Solved.ac 티어 이미지를 URL로 설정
-    icon_url = f"https://d2gd6pc034wcta.cloudfront.net/tier/{info['level']}.svg"
-    
-    payload = {
-        #[부모 설정]: 이 페이지가 생성될 노션의 상위 페이지 ID
-        "parent": {"page_id": NOTION_PAGE_ID},
-        
-        #[아이콘]: 페이지 상단에 표시될 티어 아이콘
-        "icon": {"type": "external", "external": {"url": icon_url}},
-        
-        #[제목]: 페이지 제목: "문제번호 - 문제제목"
-        "properties": {
-            "title": {"title": [{"text": {"content": f"{prob_id} - {info['title']}"}}]}
-        },
-        
-        #[본문]: 페이지 내부에 들어갈 내용 블록들
-        "children": [
-            # 1. 강조 박스 (Callout): 문제 태그 정보 표시
-            {
-                "object": "block",
-                "type": "callout",
-                "callout": {
-                    "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}],
-                    "icon": {"type": "emoji", "emoji":"💡"}
-                }
-            },
-            # 2. 텍스트 (Paragraph): 백준 문제 링크 추가
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [
-                        {
-                            "text": {
-                                "content": "문제 링크",
-                                "link": {"url": f"https://www.acmicpc.net/problem/{prob_id}"}
-                            }
-                        }
-                    ]
-                }
-            },
-            # 3. 구분선 (Divider)
-            {
-                "object": "block",
-                "type": "divider",
-                "divider": {}
-            },
-            # 4. 코드 블록 (Code Block): C++ 코드 삽입
-            {
-                "object": "block",
-                "type": "code",
-                "code": {
-                    "language": "c++",
-                    "rich_text": 
-                    [
-                        # 코드를 2000자 단위로 잘라서 여러 개의 조각으로 보냅니다.
-                        {
-                            "type": "text",
-                            "text": {"content": code[i : i + 2000]}
-                        }
-                        for i in range(0, len(code), 2000)
-                ]
-                }
+#region 노션 관련 함수
+# 노션 API로 페이지 구성
+def build_notion_content_blocks(prob_id, info, code):
+    """페이지 본문에 들어갈 블록(Callout, Link, Code) 리스트 생성"""
+    blocks = [
+        # 1. 강조 박스 (알고리즘 태그)
+        {
+            "object": "block",
+            "type": "callout",
+            "callout": {
+                "rich_text": [{"text": {"content": f"알고리즘 분류: {', '.join(info['tags'])}"}}],
+                "icon": {"type": "emoji", "emoji": "💡"}
             }
-        ]
+        },
+        # 2. 문제 링크
+        {
+            "object": "block",
+            "type": "paragraph",
+            "paragraph": {
+                "rich_text": [{
+                    "text": {
+                        "content": "🚀 백준 문제 링크 바로가기",
+                        "link": {"url": f"https://www.acmicpc.net/problem/{prob_id}"}
+                    }
+                }]
+            }
+        },
+        # 3. 구분선
+        {"object": "block", "type": "divider", "divider": {}},
+        # 4. 소스 코드 블록 (2000자 제한 대응)
+        {
+            "object": "block",
+            "type": "code",
+            "code": {
+                "language": "c++",
+                "rich_text": [
+                    {"type": "text", "text": {"content": code[i : i + 2000]}} 
+                    for i in range(0, len(code), 2000)
+                ]
+            }
+        }
+    ]
+    return blocks
+  
+#노션 데이터베이스 중복 확인
+def check_if_exists(prob_id):
+    url = f"https://api.notion.com/v1/databases/{NOTION_DATABASE_ID}/query"
+    filter_data = {
+        "filter": {
+            "property": "문제 번호",  
+            "rich_text": {
+                "equals": str(prob_id)
+            }
+        }
     }
-    
-    res = requests.post(url, headers=headers, json=payload)
+    res = requests.post(url, headers=headers, json=filter_data)
     if res.status_code == 200:
-        print(f"성공: {prob_id} 페이지 생성 완료")
-    else:
-        print(f"실패: {prob_id} (에러 코드: {res.status_code})")
-        print(res.text)
+        # 결과 리스트가 비어있지 않으면 이미 존재하는 것
+        return len(res.json().get("results", [])) > 0
+    return False
+  
+#노션 데이터베이스 작성
+def upload_to_notion_db(prob_id, info, content_blocks):
+    """준비된 데이터와 블록을 노션 데이터베이스에 업로드"""
+    url = "https://api.notion.com/v1/pages"
+    icon_url = f"https://d2gd6pc034wcta.cloudfront.net/tier/{info['level']}.svg"
+
+    payload = {
+        "parent": {"database_id": NOTION_DATABASE_ID},
+        "icon": {"type": "external", "external": {"url": icon_url}},
+        "properties": {
+            "문제 이름": {"title": [{"text": {"content": f" {info['title']}"}}]},
+            "문제 번호": {"rich_text": [{"text": {"content": str(prob_id)}}]},
+            "알고리즘": {"multi_select": [{"name": tag} for tag in info['tags']]}
+        },
+        "children": content_blocks 
+    }
+
+    res = requests.post(url, headers=headers, json=payload)
+    return res
+  
+  #endregion
+
 
 def main():
+    base_path = "./백준"
     # 현재 디렉토리부터 하위 폴더를 모두 탐색
-    for root, dirs, files in os.walk("."):
-        # 불필요한 설정 폴더(.git, .github)는 건너뜀
-        if ".git" in root or ".github" in root:
-            continue
+    if not os.path.exists(base_path):
+        print(f"❌ 폴더를 찾을 수 없습니다: {base_path}")
+        return
+
+    for root, dirs, files in os.walk(base_path):
             
         for file in files:
             # 1. 확장자 체크: .cpp 뿐만 아니라 .cc 파일도 포함
-            if file.endswith(".cpp") or file.endswith(".cc"):
+            if file.endswith(".cpp") or file.endswith(".cc") or file.endswith(".sh"):
 
-                # 2-1. 문제 정보가 있는 README.md 파일 경로
+                # 2. 문제 정보가 있는 README.md 파일 경로
                 readme_path = os.path.join(root, "README.md")
 
                 if os.path.exists(readme_path):
@@ -183,6 +193,7 @@ def main():
 
                     # 2-2. 파일 내용 파싱 
                     if readme_info:
+                        prob_id = readme_info['prob_id']
                         level_num = get_level_num(readme_info['level_name'])
 
                         info = {
@@ -190,12 +201,11 @@ def main():
                             "level": level_num,
                             "tags": readme_info['tags']
                         }
-                        prob_id = readme_info['prob_id']
                     else:
-                        print(f"⚠️ README 분석 실패: {root}")
+                        print(f"❌ README 분석 실패: {root}")
                         continue
                 else:
-                    print(f"⚠️ README.md 파일이 없습니다: {root}")
+                    print(f"❌ README.md 파일이 없습니다: {root}")
                     continue
                 
                 # 3. 문제 번호를 찾았다면 노션 업로드 진행
@@ -203,19 +213,30 @@ def main():
                     print(f"🚀 노션 업로드 중: {prob_id} - {info['title']}")
                     #info = get_solved_ac_info(prob_id)
 
-                    # 소스 코드 파일 읽기
+                    # 3.1 소스 코드 파일 읽기
                     file_path = os.path.join(root, file)
                     with open(file_path, "r", encoding="utf-8") as f:
                         code_content = f.read()
-                        
-                    # 노션에 페이지 생성 함수 호출
-                    status = create_notion_page(prob_id, info, code_content)
-                    if status == 200 or status == 201:
-                        print(f"✅ 업로드 완료: {prob_id} (Status: {status})")
-                    else:
-                        print(f"❌ 노션 전송 실패: {prob_id} (에러 코드: {status})")
 
+                    # 3.2 페이지에 들어갈 내용 생성
+                    blocks = build_notion_content_blocks(prob_id, info, code_content)
+
+                    # 노션 데이터베이스 중복 확인
+                    if check_if_exists(prob_id):
+                      print(f"⏩ 스킵: {prob_id}는 이미 노션에 있습니다.")
+                      continue
+                    
+                    # 3.4 데이터베이스에 작성
+                    res = upload_to_notion_db(prob_id, info, blocks)
+
+                    if res.status_code == 200:
+                        print(f"✅ 성공: {prob_id} 페이지 생성 완료")
+                    else:
+                        print(f"❌ 실패: {prob_id} (에러: {res.status_code})")
+                    
+                    # API 과부하 방지를 위한 대기
                     time.sleep(RequestTime)
+                  
                 else:
                     print(f"⚠️ 스킵됨: README.md 정보가 부족하거나 형식이 맞지 않음 (위치: {root})")
 
