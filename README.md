@@ -11,5 +11,5 @@
 3. **Notion API**: 추출된 데이터를 기반으로 노션 데이터베이스에 학습 내용 저장
 
 ## 📺 프로젝트 정보
-- **학습 기록 (Notion):** [👉 나의 알고리즘 오답 노트 확인하기](https://sphenoid-giraffe-fdc.notion.site/34ad6c7cb3658057b93ee7011bde57f3)
-- **시연 영상:** [🎬 시스템 작동 프로세스 보기 (YouTube)](https://youtu.be/s2ANSjIxPjU)
+- **학습 기록 (Notion):** [👉 알고리즘 노트 확인하기](https://sphenoid-giraffe-fdc.notion.site/34ad6c7cb3658057b93ee7011bde57f3)
+- **시연 영상:** [🎬 시스템 작동 프로세스 보기](https://youtu.be/s2ANSjIxPjU)
