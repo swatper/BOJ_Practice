@@ -10,7 +10,7 @@ NOTION_API = os.environ.get('NOTION_API')
 NOTION_PAGE_ID = os.environ.get('NOTION_PAGE_ID')
 NOTION_DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
 
-RequestTime = 0.5 # API 요청 간격 (초 단위)
+RequestTime = 1 # API 요청 간격 (초 단위)
 
 headers = {
     "Authorization": f"Bearer {NOTION_API}",
