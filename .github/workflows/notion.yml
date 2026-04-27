@@ -1,14 +1,14 @@
-name: Algorithn To Notion
+name: Algorithm To Notion
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-      inputs:
+       inputs:
         mode:
-          description: '실행 모드 (init: 전체 스캔, update: 변경분만)'
-          default: 'update'
+          description: '실행 모드 (init: 전체, update: 일부)'
+          default: 'init' # 추후 업데이트 기능 구현 시 활용
           required: true
 
 jobs:
@@ -39,6 +39,6 @@ jobs:
           NOTION_DATABASE_ID_BOJ: ${{ secrets.NOTION_DATABASE_ID_BOJ }}
           NOTION_DATABASE_ID_PROG: ${{ secrets.NOTION_DATABASE_ID_PROG }}
           # 변경된 파일 목록을 환경 변수로 전달
-          # CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-          # RUN_MODE: ${{ github.event.inputs.mode || 'update' }}
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          RUN_MODE: ${{ github.event.inputs.mode || 'update' }}
         run: python -u upload_to_notion.py
