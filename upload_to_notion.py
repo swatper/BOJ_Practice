@@ -36,8 +36,7 @@ def main():
 
             elif base_path == "./프로그래머스":
                 print(f"📂 프로그래머스 폴더 탐색 시작: {base_path}")
-                print("🚧 프로그래머스 업로드 기능은 아직 구현되지 않았습니다.")
-                # prg.run_programmers_process(base_path, NOTION_CONFIG, headers)
+                prg.run_programmers_process(base_path, NOTION_CONFIG, headers)
 
 # GitHub Actions에서 직접 실행할 때는 main() 함수를 호출
 if __name__ == "__main__":

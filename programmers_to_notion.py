@@ -3,41 +3,37 @@ import re
 import time
 import requests
 
-# API ¿äÃ» °£°İ (ÃÊ ´ÜÀ§)
+# API ìš”ì²­ ê°„ê²© (ì´ˆ ë‹¨ìœ„)
 RequestTime = 1
 
-# 1. ÇÁ·Î±×·¡¸Ó½º README ÆÄ½Ì (ÇÙ½É Á¤º¸ ÃßÃâ)
+# 1. í”„ë¡œê·¸ë˜ë¨¸ìŠ¤ README íŒŒì‹± (í•µì‹¬ ì •ë³´ ì¶”ì¶œ)
 def parse_programmers_readme(readme_path):
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             content = f.read()
             
-            # Çì´õ ÃßÃâ: # [level 0] Á¦¸ñ - 340207
+            # í—¤ë” ì¶”ì¶œ: # [level 0] ì œëª© - 340207
             header_match = re.search(r'# \[level (\d+)\] (.*?) - (\d+)', content)
-            # ±¸ºĞ(Ä«Å×°í¸®) ÃßÃâ: ### ±¸ºĞ\n\n³»¿ë
-            tag_match = re.search(r'### ±¸ºĞ\s*\n\n(.*?)\n', content)
-            # ¼º´É ¿ä¾à ÃßÃâ (¸Ş¸ğ¸®, ½Ã°£)
-            perf_match = re.search(r"¸Ş¸ğ¸®: (.*?), ½Ã°£: (.*?)\n", content)
+            # êµ¬ë¶„(ì¹´í…Œê³ ë¦¬) ì¶”ì¶œ: ### êµ¬ë¶„\n\në‚´ìš©
+            tag_match = re.search(r'### êµ¬ë¶„\s*\n\n(.*?)\n', content)
             
             if header_match:
-                full_category = tag_match.group(1) if tag_match else "¹ÌºĞ·ù"
-                # 'ÄÚµùÅ×½ºÆ® ¿¬½À > ÇØ½Ã' -> 'ÇØ½Ã'¸¸ ÃßÃâ
+                full_category = tag_match.group(1) if tag_match else "ë¯¸ë¶„ë¥˜"
+                # 'ì½”ë”©í…ŒìŠ¤íŠ¸ ì—°ìŠµ > í•´ì‹œ' -> 'í•´ì‹œ'ë§Œ ì¶”ì¶œ
                 last_category = full_category.split(' > ')[-1].strip()
-                performance = perf_match.group(0).strip() if perf_match else ""
 
                 return {
                     "level": header_match.group(1),
                     "title": header_match.group(2).strip(),
                     "prob_id": header_match.group(3),
                     "tags": [last_category],
-                    "performance": performance,
-                    "full_content": content # ºí·Ï »ı¼º¿ë
+                    "full_content": content # ë¸”ë¡ ìƒì„±ìš©
                 }
     except Exception as e:
-        print(f"? README ºĞ¼® ¿À·ù: {e}")
+        print(f"âŒ README ë¶„ì„ ì˜¤ë¥˜: {e}")
     return None
 
-# 2. ³ë¼Ç ÆäÀÌÁö º»¹® ºí·Ï »ı¼º
+# 2. ë…¸ì…˜ í˜ì´ì§€ ë³¸ë¬¸ ë¸”ë¡ ìƒì„±
 def build_programmers_blocks(info, code):
     blocks = [
         {
@@ -45,10 +41,9 @@ def build_programmers_blocks(info, code):
             "type": "callout",
             "callout": {
                 "rich_text": [
-                    {"text": {"content": f"¾Ë°í¸®Áò ºĞ·ù: {', '.join(info['tags'])}\n"}},
-                    {"text": {"content": f"? {info['performance']}"}}
+                    {"text": {"content": f"ì•Œê³ ë¦¬ì¦˜ ë¶„ë¥˜: {', '.join(info['tags'])}"}}
                 ],
-                "icon": {"type": "emoji", "emoji": "?"}
+                "icon": {"type": "emoji", "emoji": "ğŸ’¡"}
             }
         },
         {
@@ -57,7 +52,7 @@ def build_programmers_blocks(info, code):
             "paragraph": {
                 "rich_text": [{
                     "text": {
-                        "content": "? ÇÁ·Î±×·¡¸Ó½º ¹®Á¦ ¸µÅ© ¹Ù·Î°¡±â",
+                        "content": "ğŸš€  í”„ë¡œê·¸ë˜ë¨¸ìŠ¤ ë¬¸ì œ ë§í¬ ë°”ë¡œê°€ê¸°",
                         "link": {"url": f"https://school.programmers.co.kr/learn/courses/30/lessons/{info['prob_id']}"}
                     }
                 }]
@@ -68,7 +63,7 @@ def build_programmers_blocks(info, code):
             "object": "block",
             "type": "code",
             "code": {
-                "language": "cpp",
+                "language": "c++",
                 "rich_text": [
                     {"type": "text", "text": {"content": code[i : i + 2000]}} 
                     for i in range(0, len(code), 2000)
@@ -78,37 +73,42 @@ def build_programmers_blocks(info, code):
     ]
     return blocks
 
-# 3. ³ë¼Ç ¾÷·Îµå (µ¥ÀÌÅÍº£ÀÌ½º Çà »ı¼º)
+# 3. ë…¸ì…˜ ì—…ë¡œë“œ (ë°ì´í„°ë² ì´ìŠ¤ í–‰ ìƒì„±)
 def upload_to_notion(info, content_blocks, config, headers):
     url = "https://api.notion.com/v1/pages"
-    level_emojis = {"0": "?", "1": "?", "2": "?", "3": "?", "4": "?", "5": "?"}
+    level_emojis = {
+        "0": "ğŸŒ±", 
+        "1": "â­", 
+        "2": "ğŸ”¥", 
+        "3": "ğŸ†", 
+        "4": "ğŸ’", 
+        "5": "ğŸ‘‘"
+    }
     
     payload = {
         "parent": {"database_id": config['NOTION_DATABASE_ID_PROG']},
-        "icon": {"type": "emoji", "emoji": level_emojis.get(info['level'], "?")},
+        "icon": {"type": "emoji", "emoji": level_emojis.get(info['level'], "ğŸ’¡")},
         "properties": {
-            "¹®Á¦ ÀÌ¸§": {"title": [{"text": {"content": f" {info['title']}"}}]},
-            "¹®Á¦ ¹øÈ£": {"rich_text": [{"text": {"content": str(info['prob_id'])}}]},
-            "¾Ë°í¸®Áò": {"multi_select": [{"name": tag} for tag in info['tags']]},
-            "ÇÃ·§Æû": {"select": {"name": "Programmers"}},
-            "³­ÀÌµµ": {"select": {"name": f"Lv.{info['level']}"}}
+            "ë¬¸ì œ ì´ë¦„": {"title": [{"text": {"content": f" {info['title']}"}}]},
+            "ë¬¸ì œ ë²ˆí˜¸": {"rich_text": [{"text": {"content": str(info['prob_id'])}}]},
+            "ì•Œê³ ë¦¬ì¦˜": {"multi_select": [{"name": tag} for tag in info['tags']]}
         },
         "children": content_blocks 
     }
     return requests.post(url, headers=headers, json=payload)
 
-# 4. Áßº¹ Ã¼Å© ÇÔ¼ö (±âÁ¸ ÄÚµå È°¿ë)
+# 4. ì¤‘ë³µ ì²´í¬ í•¨ìˆ˜ (ê¸°ì¡´ ì½”ë“œ í™œìš©)
 def check_if_exists(prob_id, config, headers):
     url = f"https://api.notion.com/v1/databases/{config['NOTION_DATABASE_ID_PROG']}/query"
-    filter_data = {"filter": {"property": "¹®Á¦ ¹øÈ£", "rich_text": {"equals": str(prob_id)}}}
+    filter_data = {"filter": {"property": "ë¬¸ì œ ë²ˆí˜¸", "rich_text": {"equals": str(prob_id)}}}
     res = requests.post(url, headers=headers, json=filter_data)
     return len(res.json().get("results", [])) > 0 if res.status_code == 200 else False
 
-# 5. ¸ŞÀÎ ½ÇÇà ÇÁ·Î¼¼½º
+# 5. ë©”ì¸ ì‹¤í–‰ í”„ë¡œì„¸ìŠ¤
 def run_programmers_process(base_path, config, headers):
     for root, dirs, files in os.walk(base_path):
         for file in files:
-            # ¼Ò½ºÄÚµå ÆÄÀÏ °Ë»ö (.cpp, .cc µî)
+            # ì†ŒìŠ¤ì½”ë“œ íŒŒì¼ ê²€ìƒ‰ (.cpp, .cc ë“±)
             if file.endswith((".cpp", ".cc", ".py", ".java")):
                 readme_path = os.path.join(root, "README.md")
                 if not os.path.exists(readme_path): continue
@@ -116,23 +116,23 @@ def run_programmers_process(base_path, config, headers):
                 info = parse_programmers_readme(readme_path)
                 if not info: continue
 
-                # Áßº¹ È®ÀÎ
+                # ì¤‘ë³µ í™•ì¸
                 if check_if_exists(info['prob_id'], config, headers):
-                    print(f"? ½ºÅµ: {info['prob_id']} - {info['title']} (ÀÌ¹Ì Á¸Àç)")
+                    print(f"â© ìŠ¤í‚µ: {info['prob_id']} - {info['title']} (ì´ë¯¸ ì¡´ì¬)")
                     continue
 
-                # ÄÚµå ÀĞ±â ¹× ¾÷·Îµå
+                # ì½”ë“œ ì½ê¸° ë° ì—…ë¡œë“œ
                 with open(os.path.join(root, file), "r", encoding="utf-8") as f:
                     code_content = f.read()
 
-                print(f"? ¾÷·Îµå Áß: {info['prob_id']} - {info['title']}")
+                print(f"ğŸš€ ì—…ë¡œë“œ ì¤‘: {info['prob_id']} - {info['title']}")
                 blocks = build_programmers_blocks(info, code_content)
                 res = upload_to_notion(info, blocks, config, headers)
 
                 if res.status_code == 200:
-                    print(f"? ¼º°ø: {info['title']}")
+                    print(f"âœ… ì„±ê³µ: {info['title']}")
                 else:
-                    print(f"? ½ÇÆĞ: {res.status_code}")
-                
+                    print(f"âŒ ì‹¤íŒ¨: {res.status_code}")
+                    print(f"ì‘ë‹µ ë‚´ìš©: {res.text}")
 
-    print("? ÇÁ·Î±×·¡¸Ó½º ¹®Á¦ ¾÷·Îµå ÇÁ·Î¼¼½º ¿Ï·á!")
+    print("ğŸ‰ í”„ë¡œê·¸ë˜ë¨¸ìŠ¤ ë¬¸ì œ ì—…ë¡œë“œ í”„ë¡œì„¸ìŠ¤ ì™„ë£Œ!")
