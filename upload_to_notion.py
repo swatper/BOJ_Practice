@@ -5,7 +5,7 @@ import json
 import time
 import re
 import baekjoon_to_notion as boj
-# import programmers_to_notion as prg
+import programmers_to_notion as prg
 
 #GitHub Actions 환경변수에서 설정값 가져오기
 NOTION_CONFIG = {
