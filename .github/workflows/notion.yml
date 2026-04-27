@@ -6,10 +6,10 @@ on:
       - main
   workflow_dispatch:
       inputs:
-      mode:
-        description: '실행 모드 (init: 전체 스캔, update: 변경분만)'
-        default: 'update'
-        required: true
+        mode:
+          description: '실행 모드 (init: 전체 스캔, update: 변경분만)'
+          default: 'update'
+          required: true
 
 jobs:
   build:
