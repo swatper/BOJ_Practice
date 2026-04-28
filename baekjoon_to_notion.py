@@ -122,22 +122,38 @@ def build_notion_content_blocks(prob_id, info, code):
     ]
     return blocks
   
-#노션 데이터베이스 중복 확인
-def check_if_exists(prob_id, config, headers):
+#노션 데이터베이스에 등록된 번호 목록 조회
+def get_all_existing_boj_ids(config, headers):
     url = f"https://api.notion.com/v1/databases/{config['NOTION_DATABASE_ID_BOJ']}/query"
-    filter_data = {
-        "filter": {
-            "property": "문제 번호",  
-            "rich_text": {
-                "equals": str(prob_id)
-            }
-        }
-    }
-    res = requests.post(url, headers=headers, json=filter_data)
-    if res.status_code == 200:
-        # 결과 리스트가 비어있지 않으면 이미 존재하는 것
-        return len(res.json().get("results", [])) > 0
-    return False
+    existing_ids = set()
+    next_cursor = None
+
+    print("🔍 노션에서 전체 백준 문제 목록을 불러오는 중...")
+
+    while True:
+        # 데이터가 많을 경우 페이지네이션 처리
+        payload = {"page_size": 100}
+        if next_cursor:
+            payload["start_cursor"] = next_cursor
+            
+        res = requests.post(url, headers=headers, json=payload)
+        if res.status_code != 200: 
+            print(f"❌ 노션 API 호출 실패: {res.status_code}")
+            print(f"상세 내용: {res.text}")
+            break
+        
+        data = res.json()
+        for page in data.get("results", []):
+            # '문제 번호' 속성 추출 (속성명이 다르면 수정 필요)
+            props = page.get("properties", {})
+            rich_texts = props.get("문제 번호", {}).get("rich_text", [])
+            if rich_texts:
+                existing_ids.add(rich_texts[0]["plain_text"])
+        
+        if not data.get("has_more"): break
+        next_cursor = data.get("next_cursor")
+    print(f"✅ 총 {len(existing_ids)}개의 문제 확인")
+    return existing_ids
   
 #노션 데이터베이스 ROW 생성 및 페이지 작성
 def upload_to_notion_db(prob_id, info, content_blocks, config, headers):
@@ -164,6 +180,8 @@ def upload_to_notion_db(prob_id, info, content_blocks, config, headers):
   #endregion
 
 def run_baekjoon_process(base_path, notion_config, headers):
+    existing_boj_ids = get_all_existing_boj_ids(notion_config, headers)
+
     for root, dirs, files in os.walk(base_path):
         for file in files:
             prob_id = None
@@ -209,8 +227,8 @@ def run_baekjoon_process(base_path, notion_config, headers):
                     blocks = build_notion_content_blocks(prob_id, info, code_content)
 
                     # 노션 데이터베이스 중복 확인
-                    if check_if_exists(prob_id, config=notion_config, headers=headers):
-                        print(f"⏩ 스킵: {prob_id}는 이미 노션에 있습니다.")
+                    if str(prob_id) in existing_boj_ids:
+                        print(f"⏩ 스킵: {prob_id}는 이미 노션에 있음")
                         continue
                     
                     # 3.4 데이터베이스에 작성

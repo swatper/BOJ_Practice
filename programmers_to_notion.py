@@ -97,15 +97,48 @@ def upload_to_notion(info, content_blocks, config, headers):
     }
     return requests.post(url, headers=headers, json=payload)
 
-# 4. 중복 체크 함수 (기존 코드 활용)
-def check_if_exists(prob_id, config, headers):
-    url = f"https://api.notion.com/v1/databases/{config['NOTION_DATABASE_ID_PROG']}/query"
-    filter_data = {"filter": {"property": "문제 번호", "rich_text": {"equals": str(prob_id)}}}
-    res = requests.post(url, headers=headers, json=filter_data)
-    return len(res.json().get("results", [])) > 0 if res.status_code == 200 else False
+# 4. 중복 체크 함수
+def get_all_existing_prog_ids(config, headers):
+    # ID 전처리: 하이픈 제거 및 공백 제거
+    db_id = config['NOTION_DATABASE_ID_PROG'].strip().replace("-", "")
+    url = f"https://api.notion.com/v1/databases/{db_id}/query"
+    existing_ids = set()
+    next_cursor = None
+
+    print("🔍 노션에서 전체 프로그래머스 목록을 불러오는 중...")
+
+    while True:
+        payload = {"page_size": 100}
+        if next_cursor:
+            payload["start_cursor"] = next_cursor
+            
+        res = requests.post(url, headers=headers, json=payload)
+        if res.status_code != 200:
+            print(f"❌ 목록 로딩 실패: {res.status_code}")
+            break
+            
+        data = res.json()
+        for page in data.get("results", []):
+            props = page.get("properties", {})
+            # 프로그래머스 DB의 '문제 번호' 열 데이터를 가져옵니다.
+            target_prop = props.get("문제 번호", {})
+            p_type = target_prop.get("type") # rich_text 또는 title
+            
+            if p_type and target_prop.get(p_type):
+                existing_ids.add(target_prop[p_type][0]["plain_text"])
+        
+        if not data.get("has_more"): break
+        next_cursor = data.get("next_cursor")
+        
+    print(f"✅ 총 {len(existing_ids)}개의 문제 확인")
+    return existing_ids
+
+
 
 # 5. 메인 실행 프로세스
 def run_programmers_process(base_path, config, headers):
+    existing_prog_ids = get_all_existing_prog_ids(config, headers)
+
     for root, dirs, files in os.walk(base_path):
         for file in files:
             # 소스코드 파일 검색 (.cpp, .cc 등)
@@ -117,8 +150,8 @@ def run_programmers_process(base_path, config, headers):
                 if not info: continue
 
                 # 중복 확인
-                if check_if_exists(info['prob_id'], config, headers):
-                    print(f"⏩ 스킵: {info['prob_id']} - {info['title']} (이미 존재)")
+                if str(info['prob_id']) in existing_prog_ids:
+                    print(f"⏩ 스킵: {info['prob_id']} - {info['title']}는 이미 노션에 있음")
                     continue
 
                 # 코드 읽기 및 업로드
