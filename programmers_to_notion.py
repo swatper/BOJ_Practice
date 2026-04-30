@@ -5,8 +5,9 @@ import requests
 
 # API 요청 간격 (초 단위)
 RequestTime = 1
+asset_dir = './assets/'
 
-# 1. 프로그래머스 README 파싱 (핵심 정보 추출)
+#프로그래머스 README 파싱 (핵심 정보 추출)
 def parse_programmers_readme(readme_path):
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
@@ -33,7 +34,7 @@ def parse_programmers_readme(readme_path):
         print(f"❌ README 분석 오류: {e}")
     return None
 
-# 2. 노션 페이지 본문 블록 생성
+#노션 페이지 본문 블록 생성
 def build_programmers_blocks(info, code):
     blocks = [
         {
@@ -73,7 +74,10 @@ def build_programmers_blocks(info, code):
     ]
     return blocks
 
-# 3. 노션 업로드 (데이터베이스 행 생성)
+# def get_level_icon(level):
+
+
+#노션 업로드 (데이터베이스 행 생성)
 def upload_to_notion(info, content_blocks, config, headers):
     url = "https://api.notion.com/v1/pages"
     level_emojis = {
@@ -97,7 +101,7 @@ def upload_to_notion(info, content_blocks, config, headers):
     }
     return requests.post(url, headers=headers, json=payload)
 
-# 4. 중복 체크 함수
+#중복 체크 함수
 def get_all_existing_prog_ids(config, headers):
     # ID 전처리: 하이픈 제거 및 공백 제거
     db_id = config['NOTION_DATABASE_ID_PROG'].strip().replace("-", "")
