@@ -31,11 +31,22 @@ def parse_programmers_readme(readme_path):
                     "full_content": content # 블록 생성용
                 }
     except Exception as e:
-        print(f"❌ README 분석 오류: {e}")
+        print(f"    ❌ README 분석 오류: {e}")
     return None
 
 #노션 페이지 본문 블록 생성
-def build_programmers_blocks(info, code):
+def build_programmers_blocks(info, code, ext):
+    language_map = {
+        ".cpp": "c++",
+        ".cc": "c++",
+        ".cs": "c#",
+        ".sql": "sql",
+        ".py": "python",
+        ".java": "java",
+    }
+    notion_language = language_map.get(ext, "plain text")
+
+    #노션 코드 블록 생성 (2000자씩 분할)
     blocks = [
         {
             "object": "block",
@@ -64,7 +75,7 @@ def build_programmers_blocks(info, code):
             "object": "block",
             "type": "code",
             "code": {
-                "language": "c++",
+                "language": notion_language,
                 "rich_text": [
                     {"type": "text", "text": {"content": code[i : i + 2000]}} 
                     for i in range(0, len(code), 2000)
@@ -109,7 +120,7 @@ def get_all_existing_prog_ids(config, headers):
     existing_ids = set()
     next_cursor = None
 
-    print("🔍 노션에서 전체 프로그래머스 목록을 불러오는 중...")
+    print("    🔍 노션에서 전체 프로그래머스 목록을 불러오는 중...")
 
     while True:
         payload = {"page_size": 100}
@@ -118,7 +129,7 @@ def get_all_existing_prog_ids(config, headers):
             
         res = requests.post(url, headers=headers, json=payload)
         if res.status_code != 200:
-            print(f"❌ 목록 로딩 실패: {res.status_code}")
+            print(f"        ❌ 목록 로딩 실패: {res.status_code}")
             break
             
         data = res.json()
@@ -134,7 +145,7 @@ def get_all_existing_prog_ids(config, headers):
         if not data.get("has_more"): break
         next_cursor = data.get("next_cursor")
         
-    print(f"✅ 총 {len(existing_ids)}개의 문제 확인")
+    print(f"        ✅ 총 {len(existing_ids)}개의 문제 확인")
     return existing_ids
 
 
@@ -145,31 +156,32 @@ def run_programmers_process(base_path, config, headers):
 
     for root, dirs, files in os.walk(base_path):
         for file in files:
-            # 소스코드 파일 검색 (.cpp, .cc 등)
-            if file.endswith((".cpp", ".cc", ".py", ".java")):
+            # 소스코드 파일 검색
+            if file.endswith((".cpp", ".sql")):
                 readme_path = os.path.join(root, "README.md")
                 if not os.path.exists(readme_path): continue
 
                 info = parse_programmers_readme(readme_path)
                 if not info: continue
+                                
+                print(f"    🚀 업로드 중: {info['prob_id']} - {info['title']}")
 
                 # 중복 확인
                 if str(info['prob_id']) in existing_prog_ids:
-                    print(f"⏩ 스킵: {info['prob_id']} - {info['title']}는 이미 노션에 있음")
+                    print(f"        ⏩ 스킵: {info['prob_id']} - {info['title']}는 이미 노션에 있음")
                     continue
 
                 # 코드 읽기 및 업로드
                 with open(os.path.join(root, file), "r", encoding="utf-8") as f:
                     code_content = f.read()
 
-                print(f"🚀 업로드 중: {info['prob_id']} - {info['title']}")
-                blocks = build_programmers_blocks(info, code_content)
+                blocks = build_programmers_blocks(info, code_content, os.path.splitext(file)[1])
                 res = upload_to_notion(info, blocks, config, headers)
 
                 if res.status_code == 200:
-                    print(f"✅ 성공: {info['title']}")
+                    print(f"        ✅ 성공: {info['title']}")
                 else:
-                    print(f"❌ 실패: {res.status_code}")
-                    print(f"응답 내용: {res.text}")
+                    print(f"        ❌ 실패: {res.status_code}")
+                    print(f"        응답 내용: {res.text}")
 
     print("🎉 프로그래머스 문제 업로드 프로세스 완료!")

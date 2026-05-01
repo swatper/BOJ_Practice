@@ -35,7 +35,7 @@ def main():
             else:
                 if base_path == "./백준":
                     print(f"📂 백준 폴더 탐색 시작: {base_path}")
-                    print("🚫 백준 서비스 종료로 인해 스킵")
+                    print("⏩ 백준 서비스 종료로 인해 스킵")
                     # boj.run_baekjoon_process(base_path, NOTION_CONFIG, headers)
 
                 elif base_path == "./프로그래머스":

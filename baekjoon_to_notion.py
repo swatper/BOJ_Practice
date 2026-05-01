@@ -60,7 +60,7 @@ def parse_readme_data(readme_path):
                     "tags": tag_match.group(1).split(", ") if tag_match else ["분류 없음"]
                 }
     except Exception as e:
-        print(f"❌ README 분석 중 오류: {e}")
+        print(f"    ❌ README 분석 중 오류: {e}")
     return None
 
 
@@ -128,7 +128,7 @@ def get_all_existing_boj_ids(config, headers):
     existing_ids = set()
     next_cursor = None
 
-    print("🔍 노션에서 전체 백준 문제 목록을 불러오는 중...")
+    print("    🔍 노션에서 전체 백준 문제 목록을 불러오는 중...")
 
     while True:
         # 데이터가 많을 경우 페이지네이션 처리
@@ -138,8 +138,8 @@ def get_all_existing_boj_ids(config, headers):
             
         res = requests.post(url, headers=headers, json=payload)
         if res.status_code != 200: 
-            print(f"❌ 노션 API 호출 실패: {res.status_code}")
-            print(f"상세 내용: {res.text}")
+            print(f"        ❌ 노션 API 호출 실패: {res.status_code}")
+            print(f"        상세 내용: {res.text}")
             break
         
         data = res.json()
@@ -152,7 +152,7 @@ def get_all_existing_boj_ids(config, headers):
         
         if not data.get("has_more"): break
         next_cursor = data.get("next_cursor")
-    print(f"✅ 총 {len(existing_ids)}개의 문제 확인")
+    print(f"        ✅ 총 {len(existing_ids)}개의 문제 확인")
     return existing_ids
   
 #노션 데이터베이스 ROW 생성 및 페이지 작성
@@ -207,15 +207,15 @@ def run_baekjoon_process(base_path, notion_config, headers):
                             "tags": readme_info['tags']
                         }
                     else:
-                        print(f"❌ README 분석 실패: {root}")
+                        print(f"    ❌ README 분석 실패: {root}")
                         continue
                 else:
-                    print(f"❌ README.md 파일이 없습니다: {root}")
+                    print(f"    ❌ README.md 파일이 없습니다: {root}")
                     continue
                 
                 # 3. 문제 정보를 찾았다면 노션 업로드 진행
                 if prob_id:
-                    print(f"🚀 노션 업로드 중: {prob_id} - {info['title']}")
+                    print(f"    🚀 노션 업로드 중: {prob_id} - {info['title']}")
                     #info = get_solved_ac_info(prob_id)
 
                     # 3.1 소스 코드 파일 읽기
@@ -228,19 +228,19 @@ def run_baekjoon_process(base_path, notion_config, headers):
 
                     # 노션 데이터베이스 중복 확인
                     if str(prob_id) in existing_boj_ids:
-                        print(f"⏩ 스킵: {prob_id}는 이미 노션에 있음")
+                        print(f"        ⏩ 스킵: {prob_id}는 이미 노션에 있음")
                         continue
                     
                     # 3.4 데이터베이스에 작성
                     res = upload_to_notion_db(prob_id, info, blocks, config=notion_config, headers=headers)
 
                     if res.status_code == 200:
-                        print(f"✅ 성공: {prob_id} 페이지 생성 완료")
+                        print(f"        ✅ 성공: {prob_id} 페이지 생성 완료")
                     else:
-                        print(f"❌ 실패: {prob_id} (에러: {res.status_code})")
+                        print(f"        ❌ 실패: {prob_id} (에러: {res.status_code})")
                     
                     # API 과부하 방지를 위한 대기
                     time.sleep(RequestTime)
                 else:
-                    print(f"⚠️ 스킵됨: README.md 정보가 부족하거나 형식이 맞지 않음 (위치: {root})")
+                    print(f"    ⚠️ 스킵됨: README.md 정보가 부족하거나 형식이 맞지 않음 (위치: {root})")
     print("🎉 백준 문제 업로드 프로세스 완료!")
