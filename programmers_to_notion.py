@@ -106,7 +106,7 @@ def upload_to_notion(info, content_blocks, config, headers):
         "properties": {
             "문제 이름": {"title": [{"text": {"content": f" {info['title']}"}}]},
             "문제 번호": {"rich_text": [{"text": {"content": str(info['prob_id'])}}]},
-            "알고리즘": {"multi_select": [{"name": tag} for tag in info['tags']]}
+            "분류": {"multi_select": [{"name": tag} for tag in info['tags']]}
         },
         "children": content_blocks 
     }

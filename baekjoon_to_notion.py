@@ -67,7 +67,7 @@ def parse_readme_data(readme_path):
 # 티어 문자열을 숫자로 변환하는 함수
 def get_level_num(level_name):
     """Bronze V 같은 문자열을 Solved.ac 레벨 숫자로 변환"""
-    tiers = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Ruby", "None"]
+    tiers = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Ruby", "Unranked"]
     ranks = {"V": 1, "IV": 2, "III": 3, "II": 4, "I": 5,"?" : 0}
     
     try:
@@ -162,13 +162,14 @@ def upload_to_notion_db(prob_id, info, content_blocks, config, headers):
     icon_url = f"https://d2gd6pc034wcta.cloudfront.net/tier/{info['level']}.svg"
 
     payload = {
-        #속성 - 제목, 번호, 알고리즘 태그
+        #속성 - 제목, 번호, 알고리즘 태그, 티어
         "parent": {"database_id": config['NOTION_DATABASE_ID_BOJ']},
         "icon": {"type": "external", "external": {"url": icon_url}},
         "properties": {
-            "문제 이름": {"title": [{"text": {"content": f" {info['title']}"}}]},
+            "문제 이름": {"title": [{"text": {"content": str(info['title'])}}]},
             "문제 번호": {"rich_text": [{"text": {"content": str(prob_id)}}]},
-            "알고리즘": {"multi_select": [{"name": tag} for tag in info['tags']]}
+            "알고리즘": {"multi_select": [{"name": tag} for tag in info['tags']]},
+            "티어" : {"multi_select": [{"name": str(info['tier'])}]}
         },
         #페이지
         "children": content_blocks 
@@ -200,10 +201,12 @@ def run_baekjoon_process(base_path, notion_config, headers):
                     if readme_info:
                         prob_id = readme_info['prob_id']
                         level_num = get_level_num(readme_info['level_name'])
+                        tier_name = readme_info['level_name'].split()[0] if readme_info['level_name'] else "Unranked"
 
                         info = {
                             "title": readme_info['title'],
                             "level": level_num,
+                            "tier": tier_name,
                             "tags": readme_info['tags']
                         }
                     else:
@@ -238,6 +241,7 @@ def run_baekjoon_process(base_path, notion_config, headers):
                         print(f"        ✅ 성공: {prob_id} 페이지 생성 완료")
                     else:
                         print(f"        ❌ 실패: {prob_id} (에러: {res.status_code})")
+                        print(f"        응답 내용: {res.text}")
                     
                     # API 과부하 방지를 위한 대기
                     time.sleep(RequestTime)
