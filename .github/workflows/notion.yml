@@ -41,4 +41,4 @@ jobs:
           NOTION_DATABASE_ID_PROG: ${{ secrets.NOTION_DATABASE_ID_PROG }}
           # 변경된 파일 목록을 환경 변수로 전달
           # CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: python -u upload_to_notion.py
+        run: python -u agents/upload_to_notion.py

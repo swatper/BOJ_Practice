@@ -24,7 +24,7 @@ headers = {
 
 def main():
     run_mode = os.environ.get('RUN_MODE', 'init')
-    base_paths = ["./백준", "./프로그래머스"] 
+    base_paths = ["../백준", "../프로그래머스"] 
     if run_mode == 'init':
         print("🚀 초기화 모드로 실행 중...")
         # 현재 디렉토리부터 하위 폴더를 모두 탐색
@@ -33,12 +33,12 @@ def main():
                 print(f"❌ 폴더를 찾을 수 없습니다: {base_path}")
                 return
             else:
-                if base_path == "./백준":
+                if base_path == "../백준":
                     print(f"📂 백준 폴더 탐색 시작: {base_path}")
                     print("⏩ 백준 서비스 종료로 인해 스킵")
                     # boj.run_baekjoon_process(base_path, NOTION_CONFIG, headers)
 
-                elif base_path == "./프로그래머스":
+                elif base_path == "../프로그래머스":
                     print(f"📂 프로그래머스 폴더 탐색 시작: {base_path}")
                     prg.run_programmers_process(base_path, NOTION_CONFIG, headers)
     elif run_mode == 'baekjoon':

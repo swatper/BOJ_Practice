@@ -5,7 +5,7 @@ import requests
 
 # API 요청 간격 (초 단위)
 RequestTime = 1
-asset_dir = './assets/'
+asset_dir = '../assets/'
 
 #프로그래머스 README 파싱 (핵심 정보 추출)
 def parse_programmers_readme(readme_path):
