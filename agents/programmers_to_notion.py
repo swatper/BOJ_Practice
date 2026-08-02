@@ -158,7 +158,7 @@ def run_programmers_process(base_path, config, headers):
     for root, dirs, files in os.walk(base_path):
         for file in files:
             # 소스코드 파일 검색
-            if file.endswith((".cpp", ".sql")):
+            if file.endswith((".cpp", ".sql", ".c", ".cs", ".py", ".java")):
                 readme_path = os.path.join(root, "README.md")
                 if not os.path.exists(readme_path): continue
 
